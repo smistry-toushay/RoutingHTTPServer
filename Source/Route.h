@@ -3,7 +3,11 @@
 
 @interface Route : NSObject
 
+#ifdef APPORTABLE
+@property (nonatomic, strong) NSString *path;
+#else
 @property (nonatomic) NSRegularExpression *regex;
+#endif
 @property (nonatomic, copy) RequestHandler handler;
 
 #if __has_feature(objc_arc_weak)

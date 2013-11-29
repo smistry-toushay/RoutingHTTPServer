@@ -132,6 +132,10 @@
 
 - (Route *)routeWithPath:(NSString *)path {
 	Route *route = [[Route alloc] init];
+    
+#ifdef APPORTABLE
+    route.path = path;
+#else
 	NSMutableArray *keys = [NSMutableArray array];
 
 	if ([path length] > 2 && [path characterAtIndex:0] == '{') {
@@ -176,6 +180,7 @@
 	if ([keys count] > 0) {
 		route.keys = keys;
 	}
+#endif
 
 	return route;
 }
@@ -201,6 +206,32 @@
 		return nil;
 
 	for (Route *route in methodRoutes) {
+#ifdef APPORTABLE
+        BOOL matches = [route.path isEqualToString:path] || [route.path isEqualToString:@"*"];
+
+        if (!matches) {
+            if ([route.path hasSuffix:@"*"]) {
+                NSString *routePathPrefix = [route.path substringToIndex:(route.path.length -2)];
+                
+                matches = [path hasPrefix:routePathPrefix];
+                
+                if (matches) {
+                    NSString *wildcard = [path substringFromIndex:routePathPrefix.length];
+                    NSArray *wildcards = [NSArray arrayWithObject:wildcard];
+                    
+                    NSMutableDictionary *newParams = [params mutableCopy];
+                    
+                    [newParams setObject:wildcards forKey:@"wildcards"];
+                                        
+                    params = newParams;
+                }
+            }
+        }
+        
+        if (!matches) {
+            continue;
+        }
+#else
 		NSTextCheckingResult *result = [route.regex firstMatchInString:path options:0 range:NSMakeRange(0, path.length)];
 		if (!result)
 			continue;
@@ -243,7 +274,7 @@
 			[newParams setObject:captures forKey:@"captures"];
 			params = newParams;
 		}
-
+#endif
 		RouteRequest *request = [[RouteRequest alloc] initWithHTTPMessage:httpMessage parameters:params];
 		RouteResponse *response = [[RouteResponse alloc] initWithConnection:connection];
 		if (!routeQueue) {
