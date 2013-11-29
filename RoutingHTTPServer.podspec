@@ -12,5 +12,5 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '4.0'
   s.osx.deployment_target = '10.7'
 
-  s.dependency 'CocoaHTTPServer', :git => "git@github.com:smistry-toushay/CocoaHTTPServer.git", :branch => "apportable"
+  s.dependency 'CocoaHTTPServer', :podspec => "CocoaHTTPServer.podspec"
 end
